@@ -8,6 +8,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
+from app.api.news import router as news_router
+
 # --- Load .env from project root ---
 ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent.parent
 load_dotenv(ROOT_DIR / ".env")
@@ -28,6 +30,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# --- Routers ---
+app.include_router(news_router, prefix="/api/v1", tags=["News"])
 
 # ------------------------------------------------------------------
 # Health / Root Endpoints
