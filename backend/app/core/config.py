@@ -19,4 +19,8 @@ class Settings:
     def NEWSAPI_KEY(self) -> str:
         return os.getenv("NEWSAPI_KEY", "")
 
+    @property
+    def GEMINI_API_KEY(self) -> str:
+        return os.getenv("GEMINI_API_KEY", "")
+
 settings = Settings()

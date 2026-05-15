@@ -7,6 +7,7 @@ from typing import List, Dict, Any
 from app.core.config import settings
 from app.core.database import get_supabase_client
 from app.models.article import ArticleSchema
+from app.services import ai_service
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +67,7 @@ async def fetch_and_store_news() -> dict:
 
     supabase = get_supabase_client()
     inserted_count = 0
+    new_article_ids: List[str] = []  # Track IDs of newly inserted articles
 
     for article_data in relevant_articles:
         source_url = article_data.get("url")
@@ -105,12 +107,27 @@ async def fetch_and_store_news() -> dict:
 
         try:
             supabase.table("articles").insert(insert_data).execute()
+            new_article_ids.append(insert_data["id"])
             inserted_count += 1
         except Exception as e:
             logger.error(f"Error inserting article {source_url}: {e}")
 
+    # 5. AI Analysis — analyze all newly inserted articles
+    analysis_result = {"analyzed_count": 0, "failed_count": 0}
+    if new_article_ids:
+        logger.info(f"Triggering AI analysis for {len(new_article_ids)} new article(s)...")
+        analysis_result = await ai_service.analyze_articles(new_article_ids)
+
     return {
         "status": "success",
-        "message": f"Pipeline completed. Fetched {len(raw_articles)}, Filtered {len(relevant_articles)}, Inserted {inserted_count}.",
-        "inserted_count": inserted_count
+        "message": (
+            f"Pipeline completed. "
+            f"Fetched {len(raw_articles)}, "
+            f"Filtered {len(relevant_articles)}, "
+            f"Inserted {inserted_count}, "
+            f"Analyzed {analysis_result.get('analyzed_count', 0)}."
+        ),
+        "inserted_count": inserted_count,
+        "analyzed_count": analysis_result.get("analyzed_count", 0),
+        "analysis_failed_count": analysis_result.get("failed_count", 0),
     }
