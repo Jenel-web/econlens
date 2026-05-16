@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import APIRouter, HTTPException
 from app.services.news_service import fetch_and_store_news
 from app.services.ai_service import analyze_articles
@@ -37,5 +38,21 @@ async def analyze_pending_articles():
     if not all_ids:
         return {"message": "No articles found in the database.", "analyzed_count": 0}
 
-    result = await analyze_articles(all_ids)
-    return result
+    # FIX: Loop through IDs individually with an asyncio.sleep delay to prevent 429 blocks
+    total_analyzed = 0
+    total_failed = 0
+    
+    for article_id in all_ids:
+        single_result = await analyze_articles([article_id])
+        total_analyzed += single_result.get("analyzed_count", 0)
+        total_failed += single_result.get("failed_count", 0)
+        
+        # Pause for 4 seconds between requests to clear the Free Tier RPM limit
+        await asyncio.sleep(4)
+
+    return {
+        "status": "success",
+        "message": f"Analysis complete with rate-limiting. Total items processed: {len(all_ids)}",
+        "analyzed_count": total_analyzed,
+        "failed_count": total_failed
+    }
