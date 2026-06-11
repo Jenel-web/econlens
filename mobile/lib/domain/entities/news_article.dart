@@ -29,11 +29,11 @@ class NewsArticle {
 }
 
 enum EconomicSector {
-  ENERGY,
-  TRADE,
-  FINANCE,
-  AGRICULTURE,
-  TECHNOLOGY,
-  GEOPOLITICS,
-  OTHER,
+  energy,
+  trade,
+  finance,
+  agriculture,
+  technology,
+  geopolitics,
+  other,
 }

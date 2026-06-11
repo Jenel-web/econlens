@@ -14,7 +14,7 @@ import os
 import sys
 import pathlib
 from dotenv import load_dotenv
-import google.generativeai as genai
+from google import genai as genai
 
 # Reconfigure stdout to handle UTF-8 (fixes Peso symbol ₱ error on Windows)
 if sys.stdout.encoding != 'utf-8':
@@ -38,9 +38,9 @@ if not api_key:
         "Please check the file and ensure it contains: GEMINI_API_KEY=your_key"
     )
 
-# ── Configure Gemini ──────────────────────────────────────────────────────────
-genai.configure(api_key=api_key)
-model = genai.GenerativeModel("gemini-pro-latest")
+# ── Configure Gemini (Modern SDK Syntax) ──────────────────────────────────────
+# Instead of configuring a global module, we create a client object instance
+client = genai.Client(api_key=api_key)
 
 # ── Send prompt ───────────────────────────────────────────────────────────────
 PROMPT = 'Explain how a ₱2 oil price hike affects a jeepney driver.'
@@ -48,12 +48,16 @@ PROMPT = 'Explain how a ₱2 oil price hike affects a jeepney driver.'
 print("=" * 60)
 print("EconImpact PH — Gemini Test")
 print("=" * 60)
-print(f"Model  : gemini-1.5-flash")
+print(f"Model  : gemini-2.5-flash")
 print(f"Prompt : {PROMPT}")
 print("-" * 60)
 
 try:
-    response = model.generate_content(PROMPT)
+    # Use client.models.generate_content instead of model.generate_content
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=PROMPT
+    )
     print(response.text)
 except Exception as e:
     print(f"Error calling Gemini API: {e}")

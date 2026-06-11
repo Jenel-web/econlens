@@ -1,6 +1,7 @@
 import 'dart:convert';
+import 'package:econlens/data/models/news_article_model.dart';
 import 'package:http/http.dart' as http;
-import '../models/news_article_model.dart';
+// import '../models/news_article_model.dart';
 
 /// EconLensApiClient — Data Layer (Remote Data Source)
 ///

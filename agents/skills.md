@@ -81,8 +81,6 @@ Gemini must always respond in this exact JSON format:
   "one_line_summary": "Short headline for the card",
   "economic_impact_summary": "2-3 sentences explaining 
    the impact on Filipino households",
-  "pillars_affected": ["Fuel & Gas", "Transport"],
-  "advice": "2-3 practical tips for everyday Filipinos",
   "severity_level": "high",
   "price_impact_estimate": "Around ₱800-1,200 more 
    per month for a typical household"

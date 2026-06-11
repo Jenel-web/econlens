@@ -56,11 +56,11 @@ class NotificationsScreen extends StatelessWidget {
     required bool isUnread,
   }) {
     return Container(
-      color: isUnread ? AppTheme.primaryContainer.withOpacity(0.1) : null,
+      color: isUnread ? AppTheme.primaryContainer.withValues(alpha: 0.1) : null,
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         leading: CircleAvatar(
-          backgroundColor: iconColor.withOpacity(0.1),
+          backgroundColor: iconColor.withValues(alpha: 0.1),
           child: Icon(icon, color: iconColor),
         ),
         title: Text(

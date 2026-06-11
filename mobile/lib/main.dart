@@ -133,9 +133,9 @@ class _BackendCheckScreenState extends State<BackendCheckScreen> {
                 duration: const Duration(milliseconds: 400),
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                 decoration: BoxDecoration(
-                  color: _statusColor.withOpacity(0.12),
+                  color: _statusColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: _statusColor.withOpacity(0.5)),
+                  border: Border.all(color: _statusColor.withValues(alpha: 0.5)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,

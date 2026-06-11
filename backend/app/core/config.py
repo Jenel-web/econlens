@@ -1,10 +1,8 @@
 import os
-import pathlib
 from dotenv import load_dotenv
 
-# Try loading .env from project root
-ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent.parent.parent
-load_dotenv(ROOT_DIR / ".env")
+# Directly load the local configuration environment
+load_dotenv()
 
 class Settings:
     @property

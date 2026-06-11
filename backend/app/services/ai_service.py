@@ -2,17 +2,19 @@
 ai_service.py — EconLens Gemini AI Analysis Service
 
 Reads the skills.md system prompt rules and analyzes raw article content
-using Gemini. Generates Tagalog-language economic impact summaries and
-persists results in the Supabase `ai_analysis` table.
+using the new google-genai SDK. Generates Tagalog-language economic impact summaries
+and persists results in the Supabase `ai_analysis` table.
 """
 import uuid
 import json
 import logging
 import re
+import asyncio
 from datetime import datetime, timezone, timedelta
 from typing import List
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 from app.core.config import settings
 from app.core.database import get_supabase_client
@@ -56,28 +58,15 @@ Palaging sumagot sa EKSAKTONG JSON format na ito, walang ibang teksto:
 Huwag kailanman mag-output ng plain text. Palaging valid JSON lamang.
 """
 
-
-def _configure_gemini() -> genai.GenerativeModel:
-    """Initialize and return the Gemini model."""
-    api_key = settings.GEMINI_API_KEY
-    if not api_key:
-        raise ValueError("GEMINI_API_KEY is not set in the environment variables.")
-    genai.configure(api_key=api_key)
-    return genai.GenerativeModel(
-        model_name="gemini-1.5-flash-latest",
-        system_instruction=SYSTEM_PROMPT,
-        generation_config=genai.GenerationConfig(
-            response_mime_type="application/json",
-            temperature=0.4,
-        ),
-    )
+# Initialize the modern SDK client
+# It automatically picks up 'GEMINI_API_KEY' from environment variables
+client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
 
 def _parse_gemini_response(raw_text: str) -> dict:
     """
     Safely parse Gemini's JSON response. Strips markdown code fences if present.
     """
-    # Strip markdown fences like ```json ... ```
     clean = re.sub(r"```(?:json)?\s*|\s*```", "", raw_text.strip())
     return json.loads(clean)
 
@@ -99,7 +88,6 @@ async def analyze_articles(article_ids: List[str]) -> dict:
     supabase = get_supabase_client()
 
     # Fetch only the articles that still need analysis
-    # (i.e., those whose IDs are not already in ai_analysis)
     existing_analysis = supabase.table("ai_analysis").select("article_id").in_(
         "article_id", article_ids
     ).execute()
@@ -120,12 +108,6 @@ async def analyze_articles(article_ids: List[str]) -> dict:
     if not articles:
         return {"analyzed_count": 0, "failed_count": 0, "message": "No article content found."}
 
-    try:
-        model = _configure_gemini()
-    except ValueError as e:
-        logger.error(f"Gemini configuration error: {e}")
-        return {"analyzed_count": 0, "failed_count": len(pending_ids), "message": str(e)}
-
     analyzed_count = 0
     failed_count = 0
 
@@ -134,15 +116,25 @@ async def analyze_articles(article_ids: List[str]) -> dict:
         title = article.get("title", "No Title")
         raw_content = article.get("raw_content") or ""
 
-        if not raw_content.strip():
-            logger.warning(f"Skipping article {article_id} — empty raw_content.")
+        if not raw_content.strip() or len(raw_content.strip()) < 10:
+            logger.warning(f"Skipping article {article_id} — empty or insufficient raw_content.")
             failed_count += 1
             continue
 
         prompt = f"Balita:\nPamagat: {title}\n\nNilalaman:\n{raw_content}"
 
         try:
-            response = model.generate_content(prompt)
+            # Call the modern generation endpoint using gemini-2.5-flash
+            response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    system_instruction=SYSTEM_PROMPT,
+                    temperature=0.4,
+                    response_mime_type="application/json",
+                )
+            )
+            
             parsed = _parse_gemini_response(response.text)
 
             # Validate required fields exist
@@ -166,16 +158,21 @@ async def analyze_articles(article_ids: List[str]) -> dict:
             insert_data["article_id"] = str(insert_data["article_id"])
             insert_data["generated_at"] = insert_data["generated_at"].isoformat()
 
+            # Insert the successful analysis payload into your ai_analysis table
             supabase.table("ai_analysis").insert(insert_data).execute()
+            logger.info(f"✓ Successfully analyzed article {article_id}: {title[:50]}...")
             analyzed_count += 1
-            logger.info(f"✓ Analyzed article {article_id}: {title[:50]}...")
 
         except Exception as e:
             logger.error(f"✗ Failed to analyze article {article_id}: {e}")
             failed_count += 1
 
+        # RATE LIMITING: Pause for 4 seconds between requests to protect Free Tier limits
+        await asyncio.sleep(4)
+
     return {
+        "status": "success",
+        "message": f"Batch analysis finished. Processed: {len(articles)}",
         "analyzed_count": analyzed_count,
-        "failed_count": failed_count,
-        "message": f"Analysis complete. Analyzed: {analyzed_count}, Failed: {failed_count}.",
+        "failed_count": failed_count
     }

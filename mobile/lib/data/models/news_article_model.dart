@@ -29,7 +29,7 @@ class NewsArticleModel extends NewsArticle {
       economicSector: json['economicSector'] != null
           ? EconomicSector.values.firstWhere(
               (e) => e.name == json['economicSector'],
-              orElse: () => EconomicSector.OTHER,
+              orElse: () => EconomicSector.other,
             )
           : null,
       aiImpactSummary: json['aiImpactSummary'] as String?,
