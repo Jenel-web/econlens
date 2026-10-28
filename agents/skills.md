@@ -73,17 +73,20 @@ Security: Never expose API keys. Always use Environment Variables (.env) for New
 
 Sensitivity: Never blame the user's financial status; instead, provide "Practical Advice" (e.g., "Consider carpooling" or "Limit appliance use during peak hours").
 
-7. Output Format
+6. Strict Output Format (JSON Only)
 
-Gemini must always respond in this exact JSON format:
+Gemini must always respond in this exact strict JSON format matching the database schema. No markdown wrapping or plain text.
 
 {
-  "one_line_summary": "Short headline for the card",
-  "economic_impact_summary": "2-3 sentences explaining 
-   the impact on Filipino households",
-  "severity_level": "high",
-  "price_impact_estimate": "Around ₱800-1,200 more 
-   per month for a typical household"
+  "ano_ang_nangyari": "Concise, one-line summary of the news.",
+  "paano_ito_makakaapekto_satin": "Explanation of the direct economic impacts on regular citizens.",
+  "advice": "Practical, real-world advice (praktikal na payo) for the readers.",
+  "tinatantyang_epekto_sa_budget": "Estimate of how this alters a household budget or personal expenses.",
+  "apektadong_larangan": "Specific industries or fields impacted by the news event.",
+  "severity_level": "low"
 }
 
-Never return plain text. Always return valid JSON.
+Important criteria:
+- severity_level MUST be one of: "low", "medium", or "high".
+- The response MUST be entirely in Tagalog.
+- NEVER return plain text or markdown formatting blocks like ```json. ONLY return valid JSON.

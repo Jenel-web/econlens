@@ -29,7 +29,7 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'EcoNews PH',
+              'EconLens PH',
               style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                     color: Colors.white,
                   ),

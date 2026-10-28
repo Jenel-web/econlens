@@ -8,7 +8,7 @@ class AboutScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('About EcoNews PH'),
+        title: const Text('About EconLens PH'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -21,7 +21,7 @@ class AboutScreen extends StatelessWidget {
                   const Icon(Icons.eco, size: 64, color: AppTheme.primary),
                   const SizedBox(height: 16),
                   Text(
-                    'EcoNews PH',
+                    'EconLens PH',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppTheme.primary,
@@ -46,7 +46,7 @@ class AboutScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'EcoNews PH is dedicated to bridging the gap between complex economic data and everyday life in the Philippines. We transform dense market updates into digestible, actionable insights for commuters, small business owners, and civic-minded citizens navigating the local economy.',
+              'EconLens PH is dedicated to bridging the gap between complex economic data and everyday life in the Philippines. We transform dense market updates into digestible, actionable insights for commuters, small business owners, and civic-minded citizens navigating the local economy.',
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 24),

@@ -34,28 +34,23 @@ Ang iyong trabaho ay suriin ang mga artikulo sa balita at magbigay ng nakaayos n
 
 Sundin ang mga sumusunod na alituntunin:
 - Gumamit ng propesyonal ngunit naiintindihang wika para sa karaniwang Pilipino.
-- Iwasan ang mga teknikal na termino; gumamit ng simpleng salita (hal., sa halip na "liquidity crisis" gamitin ang "mahirap mag-budget ng pera").
-- Palaging sagutin: "Magkano ang karagdagang gastusin ng karaniwang Pilipino dahil sa balitang ito?"
+- Iwasan ang mga teknikal na termino; gumamit ng simpleng salita.
 - I-evaluate ang epekto batay sa Limang Haligi (Five Pillars): Gasolina/LPG, Kuryente, Tubig, Transportasyon, Koneksyon (load/internet), at Pagkain/Bilihin.
 
 Severity Logic (isang salita lamang):
-- "Low"    → Epekto ay wala pang ₱500/buwan sa gastusin ng pamilya
-- "Medium" → Epekto ay ₱500–₱2,000/buwan
-- "High"   → Epekto ay mahigit ₱2,000/buwan O nakakaapekto sa maraming haligi nang sabay-sabay
+- "low"    → Epekto ay wala pang ₱500/buwan sa gastusin ng pamilya
+- "medium" → Epekto ay ₱500–₱2,000/buwan
+- "high"   → Epekto ay mahigit ₱2,000/buwan O nakakaapekto sa maraming haligi nang sabay-sabay
 
-Mahalagang Patakaran:
-- Huwag mag-hallucinate. Kung walang sapat na detalye sa artikulo para kalkulahin ang pagbabago ng presyo, sabihing "di tiyak" ang epekto.
-- Huwag sisihin ang kalidad ng buhay ng mambabasa; mag-alok lamang ng "Praktikal na Payo".
-
-Palaging sumagot sa EKSAKTONG JSON format na ito, walang ibang teksto:
+Palaging sumagot sa EKSAKTONG strict JSON format na ito, walang markdown o plain text:
 {
-  "one_line_summary": "Maikling headline ng balita (Tagalog)",
-  "economic_impact_summary": "2-3 pangungusap na nagpapaliwanag ng epekto sa mga Pilipinong pamilya (Tagalog)",
-  "advice": "2-3 praktikal na payo para sa karaniwang Pilipino o may-ari ng negosyo (Tagalog)",
-  "severity_level": "Low" o "Medium" o "High"
+  "ano_ang_nangyari": "Maikling buod ng balita",
+  "paano_ito_makakaapekto_satin": "Paliwanag sa direktang epekto sa ekonomiya ng mga Pilipino",
+  "advice": "Mga praktikal na payo",
+  "tinatantyang_epekto_sa_budget": "Tantiya ng epekto sa budget ng sambahayan",
+  "apektadong_larangan": "Mga industriya na maaapektuhan",
+  "severity_level": "low" o "medium" o "high"
 }
-
-Huwag kailanman mag-output ng plain text. Palaging valid JSON lamang.
 """
 
 # Initialize the modern SDK client
@@ -124,7 +119,7 @@ async def analyze_articles(article_ids: List[str]) -> dict:
         prompt = f"Balita:\nPamagat: {title}\n\nNilalaman:\n{raw_content}"
 
         try:
-            # Call the modern generation endpoint using gemini-2.5-flash
+            # Call the modern generation endpoint using gemini-1.5-flash as requested
             response = client.models.generate_content(
                 model='gemini-2.5-flash',
                 contents=prompt,
@@ -138,7 +133,7 @@ async def analyze_articles(article_ids: List[str]) -> dict:
             parsed = _parse_gemini_response(response.text)
 
             # Validate required fields exist
-            required = {"one_line_summary", "economic_impact_summary", "advice", "severity_level"}
+            required = {"ano_ang_nangyari", "paano_ito_makakaapekto_satin", "advice", "tinatantyang_epekto_sa_budget", "apektadong_larangan", "severity_level"}
             if not required.issubset(parsed.keys()):
                 raise ValueError(f"Gemini response missing required fields: {required - parsed.keys()}")
 
@@ -146,10 +141,12 @@ async def analyze_articles(article_ids: List[str]) -> dict:
             analysis = AIAnalysisSchema(
                 id=uuid.uuid4(),
                 article_id=uuid.UUID(article_id),
-                one_line_summary=parsed["one_line_summary"],
-                economic_impact_summary=parsed["economic_impact_summary"],
+                ano_ang_nangyari=parsed["ano_ang_nangyari"],
+                paano_ito_makakaapekto_satin=parsed["paano_ito_makakaapekto_satin"],
                 advice=parsed["advice"],
-                severity_level=parsed["severity_level"].capitalize(),
+                tinatantyang_epekto_sa_budget=parsed["tinatantyang_epekto_sa_budget"],
+                apektadong_larangan=parsed["apektadong_larangan"],
+                severity_level=parsed["severity_level"].lower(),
                 generated_at=datetime.now(PST),
             )
 

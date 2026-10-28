@@ -120,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('EcoNews PH'),
+        title: const Text('EconLens PH'),
         backgroundColor: AppTheme.background,
         elevation: 0,
         actions: [
